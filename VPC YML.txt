@@ -1,0 +1,52 @@
+--- 
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "create vpc\n"
+Resources: 
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock:10.0.0.0/16 
+     
+    
+  PubSub:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: "us-east-1a"
+      CidrBlock: 10.0.10.0/24
+      VpcId: !Ref Vpc
+      Tags:
+        - key: Name
+          Value: aws-infra-PubSub
+  
+  PriSub:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: "us-east-1b"
+      CidrBlock: 10.0.30.0/24
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: aws-infra-prisub
+    
+  Igw:
+    Type: AWS::EC2::InternetGateway
+    Properties:  
+      Tags:
+        -  Key: Name
+           Value: aws-infra-Igw 
+  
+  RT01:
+   Type: AWS::EC2::RouteTable
+   Properties:
+     VpcId: !Ref PubSub
+
+  RTassociation1a:
+   Type: AWS::EC2::SubnetRouteAssocaition
+   Properties:
+      RouteTableId: !Ref RT01
+      SubnetId: !Ref PubSub
+  
+  Route01:
+    Type: AWS::EC2::Route
+    Properties:
+       RouteTableId: !Ref RT01

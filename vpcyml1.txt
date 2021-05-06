@@ -1,0 +1,93 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  create vpc
+
+Resources:
+
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16  
+      Tags:               
+        - Key: Name
+          Value: aws-infra-vpc
+
+  PubSub:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: "us-east-1a"    
+      CidrBlock: 10.0.10.0/24   
+      Tags:                
+        - Key: Name
+          Value: aws-infra-publicsubnet1a
+      VpcId: !Ref VPC     
+
+
+  PriSub1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: "us-east-1a"    
+      CidrBlock: 10.0.20.0/24   
+      Tags:                
+        - Key: Name
+          Value: aws-infra-privatesubnet1a
+      VpcId: !Ref VPC   
+
+
+  PriSub1c:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: "us-east-1c"   
+      CidrBlock: 10.0.30.0/24   
+      Tags:               
+        - Key: Name
+          Value: aws-infra-privatesubnet1c
+      VpcId: !Ref VPC   
+
+
+  Igw:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:               
+        - Key: Name
+          Value: aws-infra-igw
+
+
+  Eip:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: VPC     
+
+
+  Agw:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref Igw   
+      VpcId: !Ref VPC  
+
+
+  RT01:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:                
+        - Key: Name
+          Value: aws-infra-public-route
+      VpcId: !Ref VPC   
+
+
+  RTassociation1a:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RT01     
+      SubnetId: !Ref PubSub    
+
+
+  Route01:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0     
+      GatewayId: !Ref Igw 
+      RouteTableId: !Ref RT01    

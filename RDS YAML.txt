@@ -1,0 +1,59 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >
+  creat rds
+Resources:
+  SecurityGroupDB:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: mysql/aurora
+      GroupName: aws-infra-db
+      VpcId: !ImportValue aws-infra-vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId:  !ImportValue aws-infra-sg
+      Tags:
+        - Key: Name
+          Value: aws-infra-dbsg
+
+  DBSubnet:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: RDS SubnetGroup
+      DBSubnetGroupName: aws-infra-dbsub
+      SubnetIds:
+        - !ImportValue aws-infra-privatesubnet1a
+        - !ImportValue aws-infra-privatesubnet1c
+      Tags:
+        - Key: Name
+          Value: aws-infra-dbsub
+
+  DBParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: RDS PrametersGroup
+      Family: mysql8.0   
+      Tags:                
+        - Key: Name
+          Value: aws-infra-mysql80
+
+  DBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: 20
+      AvailabilityZone: us-east-1a 
+      CopyTagsToSnapshot: true     
+      DBInstanceClass: db.t2.micro     # required
+      DBInstanceIdentifier: aws-infra-web    
+      DBParameterGroupName: !Ref DBParameterGroup
+      DBSubnetGroupName: !Ref DBSubnet   
+      Engine: mysql   
+      EngineVersion: 8.0.21    
+      MasterUserPassword: aws-infra-pass    
+      MasterUsername: root     
+      PubliclyAccessible: false    
+      VPCSecurityGroups:
+        - !Ref SecurityGroupDB
